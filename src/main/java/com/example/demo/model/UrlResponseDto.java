@@ -1,6 +1,8 @@
 package com.example.demo.model;
 
 import java.time.LocalDateTime;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.*;
 
 public class UrlResponseDto {
     private String originalUrl;

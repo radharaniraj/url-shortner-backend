@@ -22,8 +22,7 @@ public class Url {
 
     }
 
-    public Url(long id, String originalUrl, String shortLink, LocalDateTime creationDate, LocalDateTime expirationDate) {
-        this.id = id;
+    public Url(String originalUrl, String shortLink, LocalDateTime creationDate, LocalDateTime expirationDate) {
         this.originalUrl = originalUrl;
         this.shortLink = shortLink;
         this.creationDate = creationDate;
@@ -67,6 +66,7 @@ public class Url {
     }
 
     public LocalDateTime getExpirationDate() {
+
         return expirationDate;
     }
 

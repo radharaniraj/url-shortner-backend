@@ -20,21 +20,21 @@ public class UrlServiceImpl implements UrlService{
 
     @Override
     public Url generateShortLink(UrlDto urlDto) {
+        String encodedUrl = encodeUrl(urlDto.getUrl());
+        LocalDateTime creationDate = LocalDateTime.now();
+        LocalDateTime expirationDate = getExpirationDate(urlDto.getExpirationDate(), creationDate);
 
-        if(StringUtils.isNotEmpty(urlDto.getUrl())){
-            String encodedUrl=encodeUrl(urlDto.getUrl());
-            Url urlToPersist=new Url();
-            urlToPersist.setCreationDate(LocalDateTime.now());
-            urlToPersist.setOriginalUrl(urlDto.getUrl());
-            urlToPersist.setShortLink(encodedUrl);
-            urlToPersist.setExpirationDate(getExpirationDate(urlDto.getExpirationDate(),urlToPersist.getCreationDate()));
-            Url urlToRet=persistShortLink(urlToPersist);
-            if(urlToRet!=null){
-                return urlToRet;
-            }
-            return null;
-        }
-        return null;
+        Url urlToPersist = new Url(urlDto.getUrl(), encodedUrl, creationDate, expirationDate);
+        return persistShortLink(urlToPersist);
+    }
+
+    @Override
+    public Url generateURLWithCustomSlug(UrlDto urlDto){
+        LocalDateTime creationDate = LocalDateTime.now();
+        LocalDateTime expirationDate = getExpirationDate(urlDto.getExpirationDate(), creationDate);
+
+        Url urlToPersist = new Url(urlDto.getUrl(), urlDto.getCustomSlug(), creationDate, expirationDate);
+        return persistShortLink(urlToPersist);
     }
 
     private LocalDateTime getExpirationDate(String expirationDate, LocalDateTime creationDate) {
@@ -68,5 +68,10 @@ public class UrlServiceImpl implements UrlService{
     @Override
     public void deleteShortLink(Url url) {
         urlRepository.delete(url);
+    }
+
+    @Override
+    public boolean isCustomSlugExists(String customSlug) {
+        return urlRepository.existsByShortLink(customSlug);
     }
 }

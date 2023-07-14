@@ -4,6 +4,7 @@ import com.example.demo.model.Url;
 import com.example.demo.model.UrlDto;
 import com.example.demo.model.UrlErrorResponseDto;
 import com.example.demo.model.UrlResponseDto;
+import com.example.demo.model.ErrorDetail;
 import com.example.demo.service.UrlService;
 import io.micrometer.common.util.StringUtils;
 import jakarta.servlet.http.HttpServletResponse;
@@ -11,9 +12,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
+import jakarta.validation.Valid;
+
 
 @RestController
 public class UrlShorteningcontroller {
@@ -21,23 +26,38 @@ public class UrlShorteningcontroller {
     private UrlService urlService;
 
     @PostMapping("/generate")
-    public ResponseEntity<?> generateShortLink(@RequestBody UrlDto urlDto)
+    public ResponseEntity<?> generateShortLink(@Valid @RequestBody UrlDto urlDto)
     {
-        Url urlToRet = urlService.generateShortLink(urlDto);
+        try {
+            if (urlService.isCustomSlugExists(urlDto.getCustomSlug())) {
+                return ResponseEntity.status(HttpStatus.CONFLICT).body("Custom slug already exists");
+            }
+            Url urlToRet = null;
+            if(urlDto.getCustomSlug() == null) {
+                urlToRet = urlService.generateShortLink(urlDto);
+            }
+            else{
+                urlToRet = urlService.generateURLWithCustomSlug(urlDto);
+            }
 
-        if(urlToRet != null)
-        {
-            UrlResponseDto urlResponseDto = new UrlResponseDto();
-            urlResponseDto.setOriginalUrl(urlToRet.getOriginalUrl());
-            urlResponseDto.setExpirationDate(urlToRet.getExpirationDate());
-            urlResponseDto.setShortLink(urlToRet.getShortLink());
-            return new ResponseEntity<UrlResponseDto>(urlResponseDto, HttpStatus.OK);
+            if (urlToRet != null) {
+                UrlResponseDto urlResponseDto = new UrlResponseDto();
+                urlResponseDto.setOriginalUrl(urlToRet.getOriginalUrl());
+                urlResponseDto.setExpirationDate(urlToRet.getExpirationDate());
+                urlResponseDto.setShortLink(urlToRet.getShortLink());
+                return ResponseEntity.ok(urlResponseDto);
+            } else {
+                UrlErrorResponseDto urlErrorResponseDto = new UrlErrorResponseDto();
+                urlErrorResponseDto.setStatus("404");
+                urlErrorResponseDto.setError("There was an error processing your request. Please try again.");
+                return ResponseEntity.ok(urlErrorResponseDto);
+            }
+        } catch (Exception e) {
+            UrlErrorResponseDto urlErrorResponseDto = new UrlErrorResponseDto();
+            urlErrorResponseDto.setStatus("500");
+            urlErrorResponseDto.setError("An unexpected error occurred.");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(urlErrorResponseDto);
         }
-
-        UrlErrorResponseDto urlErrorResponseDto = new UrlErrorResponseDto();
-        urlErrorResponseDto.setStatus("404");
-        urlErrorResponseDto.setError("There was an error processing your request. please try again.");
-        return new ResponseEntity<UrlErrorResponseDto>(urlErrorResponseDto,HttpStatus.OK);
 
     }
 
@@ -72,5 +92,10 @@ public class UrlShorteningcontroller {
 
         response.sendRedirect(urlToRet.getOriginalUrl());
         return null;
+    }
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<Object> handleValidationException(MethodArgumentNotValidException ex) {
+        String errorMessage = ex.getBindingResult().getFieldError().getDefaultMessage();
+        return ResponseEntity.badRequest().body(new ErrorDetail(errorMessage));
     }
 }
