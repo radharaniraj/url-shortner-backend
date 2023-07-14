@@ -1,16 +1,14 @@
 package com.example.demo.model;
 
-import jakarta.validation.Valid;
+import com.example.demo.annotations.ValidExpirationDate;
 import jakarta.validation.constraints.*;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 
 public class UrlDto {
     @NotEmpty(message = "url is required")
     @Pattern(regexp = "^https?://.*", message = "URL must start with http:// or https://")
     private String url;
-    @Pattern(regexp = "\\d{4}-\\d{2}-\\d{2}", message = "Expiration date must be in the format yyyy-MM-dd")
+    @Pattern(regexp = "\\d{4}-\\d{2}-\\d{2}", message = "Expiration date must be in the format YYYY-MM-DD")
+    @ValidExpirationDate
     private String expirationDate;
 
     @Pattern(regexp = "^[a-zA-Z0-9]{3,8}$", message = "Custom slug must be alphanumeric and between 3 to 8 characters")

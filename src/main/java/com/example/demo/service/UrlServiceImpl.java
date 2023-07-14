@@ -13,6 +13,8 @@ import org.apache.commons.lang3.StringUtils;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+
 @Component
 public class UrlServiceImpl implements UrlService{
     @Autowired
@@ -41,8 +43,9 @@ public class UrlServiceImpl implements UrlService{
         if(StringUtils.isBlank(expirationDate)){
             return creationDate.plusSeconds(60);
         }
-        LocalDateTime expirationDateToRet= LocalDateTime.parse(expirationDate);
-        return expirationDateToRet;
+        LocalDate expirationDateObj = LocalDate.parse(expirationDate, DateTimeFormatter.ISO_DATE);
+        LocalDateTime expirationDateTime = expirationDateObj.atStartOfDay();
+        return expirationDateTime;
     }
 
     private String encodeUrl(String url) {
