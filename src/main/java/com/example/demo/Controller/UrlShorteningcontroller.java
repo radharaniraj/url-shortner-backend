@@ -14,6 +14,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import com.example.demo.exceptions.CustomSlugExistsException;
+import com.example.demo.exceptions.UrlProcessingException;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
@@ -30,13 +32,13 @@ public class UrlShorteningcontroller {
     {
         try {
             if (urlService.isCustomSlugExists(urlDto.getCustomSlug())) {
-                return ResponseEntity.status(HttpStatus.CONFLICT).body("Custom slug already exists");
+                throw new CustomSlugExistsException("Custom slug already exists");
             }
-            Url urlToRet = null;
-            if(urlDto.getCustomSlug() == null) {
+
+            Url urlToRet;
+            if (urlDto.getCustomSlug() == null) {
                 urlToRet = urlService.generateShortLink(urlDto);
-            }
-            else{
+            } else {
                 urlToRet = urlService.generateURLWithCustomSlug(urlDto);
             }
 
@@ -47,11 +49,18 @@ public class UrlShorteningcontroller {
                 urlResponseDto.setShortLink(urlToRet.getShortLink());
                 return ResponseEntity.ok(urlResponseDto);
             } else {
-                UrlErrorResponseDto urlErrorResponseDto = new UrlErrorResponseDto();
-                urlErrorResponseDto.setStatus("404");
-                urlErrorResponseDto.setError("There was an error processing your request. Please try again.");
-                return ResponseEntity.ok(urlErrorResponseDto);
+                throw new UrlProcessingException("There was an error processing your request. Please try again.");
             }
+        } catch (CustomSlugExistsException e) {
+            UrlErrorResponseDto urlErrorResponseDto = new UrlErrorResponseDto();
+            urlErrorResponseDto.setStatus("409");
+            urlErrorResponseDto.setError(e.getMessage());
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(urlErrorResponseDto);
+        } catch (UrlProcessingException e) {
+            UrlErrorResponseDto urlErrorResponseDto = new UrlErrorResponseDto();
+            urlErrorResponseDto.setStatus("400");
+            urlErrorResponseDto.setError(e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(urlErrorResponseDto);
         } catch (Exception e) {
             UrlErrorResponseDto urlErrorResponseDto = new UrlErrorResponseDto();
             urlErrorResponseDto.setStatus("500");
@@ -93,9 +102,14 @@ public class UrlShorteningcontroller {
         response.sendRedirect(urlToRet.getOriginalUrl());
         return null;
     }
+
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<Object> handleValidationException(MethodArgumentNotValidException ex) {
+    public ResponseEntity<UrlErrorResponseDto> handleValidationException(MethodArgumentNotValidException ex) {
         String errorMessage = ex.getBindingResult().getFieldError().getDefaultMessage();
-        return ResponseEntity.badRequest().body(new ErrorDetail(errorMessage));
+        UrlErrorResponseDto urlErrorResponseDto = new UrlErrorResponseDto();
+        urlErrorResponseDto.setStatus("400");
+        urlErrorResponseDto.setError(errorMessage);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(urlErrorResponseDto);
     }
 }
