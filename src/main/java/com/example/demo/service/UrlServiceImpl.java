@@ -14,6 +14,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Random;
 
 @Component
 public class UrlServiceImpl implements UrlService{
@@ -21,17 +22,19 @@ public class UrlServiceImpl implements UrlService{
     private UrlRepository urlRepository;
 
     @Override
-    public Url generateShortLink(UrlDto urlDto) {
-        String encodedUrl = encodeUrl(urlDto.getUrl());
+    public Url createUrlWithRandomSlug(UrlDto urlDto) {
+//        We can use encode url if custom slug feature is not there
+//        String slug = encodeUrl(urlDto.getUrl());
+        String slug = generateRandomSlug();
         LocalDateTime creationDate = LocalDateTime.now();
         LocalDateTime expirationDate = getExpirationDate(urlDto.getExpirationDate(), creationDate);
 
-        Url urlToPersist = new Url(urlDto.getUrl(), encodedUrl, creationDate, expirationDate);
+        Url urlToPersist = new Url(urlDto.getUrl(), slug, creationDate, expirationDate);
         return persistShortLink(urlToPersist);
     }
 
     @Override
-    public Url generateURLWithCustomSlug(UrlDto urlDto){
+    public Url createURLWithCustomSlug(UrlDto urlDto){
         LocalDateTime creationDate = LocalDateTime.now();
         LocalDateTime expirationDate = getExpirationDate(urlDto.getExpirationDate(), creationDate);
 
@@ -53,6 +56,33 @@ public class UrlServiceImpl implements UrlService{
         LocalDateTime time=LocalDateTime.now();
         encodedUrl= Hashing.murmur3_32_fixed().hashString(url.concat(time.toString()), StandardCharsets.UTF_8).toString();
         return encodedUrl;
+    }
+
+    private String generateRandomSlug() {
+        String characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+        String generatedString = "";
+
+        boolean isUnique = false;
+        while (!isUnique) {
+            generatedString = generateRandomString(characters, 6);
+            if (!urlRepository.existsByShortLink(generatedString)) {
+                isUnique = true;
+            }
+        }
+
+        return generatedString;
+    }
+
+    private String generateRandomString(String characters, int length) {
+        Random random = new Random();
+        StringBuilder sb = new StringBuilder();
+
+        for (int i = 0; i < length; i++) {
+            int index = random.nextInt(characters.length());
+            sb.append(characters.charAt(index));
+        }
+
+        return sb.toString();
     }
 
 
