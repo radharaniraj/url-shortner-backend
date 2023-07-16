@@ -1,10 +1,11 @@
 package com.example.demo.service;
 
 import com.example.demo.model.Url;
-import com.example.demo.model.UrlDto;
+import com.example.demo.dto.UrlDto;
 import com.example.demo.repository.UrlRepository;
 import com.google.common.hash.Hashing;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
 import org.apache.commons.lang3.StringUtils;
@@ -15,31 +16,33 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Random;
+import java.util.concurrent.CompletableFuture;
 
 @Component
 public class UrlServiceImpl implements UrlService{
+//    TODO: Add multi threading in all the services
     @Autowired
     private UrlRepository urlRepository;
 
     @Override
-    public Url createUrlWithRandomSlug(UrlDto urlDto) {
-//        We can use encode url if custom slug feature is not there
-//        String slug = encodeUrl(urlDto.getUrl());
+    @Async
+    public CompletableFuture<Url> createUrlWithRandomSlug(UrlDto urlDto) {
         String slug = generateRandomSlug();
         LocalDateTime creationDate = LocalDateTime.now();
         LocalDateTime expirationDate = getExpirationDate(urlDto.getExpirationDate(), creationDate);
 
         Url urlToPersist = new Url(urlDto.getUrl(), slug, creationDate, expirationDate);
-        return persistShortLink(urlToPersist);
+        return CompletableFuture.completedFuture(persistShortLink(urlToPersist));
     }
 
+    @Async
     @Override
-    public Url createURLWithCustomSlug(UrlDto urlDto){
+    public CompletableFuture<Url> createURLWithCustomSlug(UrlDto urlDto){
         LocalDateTime creationDate = LocalDateTime.now();
         LocalDateTime expirationDate = getExpirationDate(urlDto.getExpirationDate(), creationDate);
 
         Url urlToPersist = new Url(urlDto.getUrl(), urlDto.getCustomSlug(), creationDate, expirationDate);
-        return persistShortLink(urlToPersist);
+        return CompletableFuture.completedFuture(persistShortLink(urlToPersist));
     }
 
     private LocalDateTime getExpirationDate(String expirationDate, LocalDateTime creationDate) {

@@ -1,4 +1,4 @@
-package com.example.demo.model;
+package com.example.demo.dto;
 
 import com.example.demo.annotations.ValidExpirationDate;
 import jakarta.validation.constraints.*;

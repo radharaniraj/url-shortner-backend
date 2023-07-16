@@ -1,4 +1,4 @@
-package com.example.demo.model;
+package com.example.demo.dto;
 
 import java.time.LocalDateTime;
 import jakarta.validation.Valid;

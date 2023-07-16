@@ -1,15 +1,15 @@
-package com.example.demo.model;
+package com.example.demo.dto;
 
-public class UrlErrorResponseDto {
+public class ErrorResponseDto {
     private String status;
     private String error;
 
-    public UrlErrorResponseDto(String status, String error) {
+    public ErrorResponseDto(String status, String error) {
         this.status = status;
         this.error = error;
     }
 
-    public UrlErrorResponseDto() {
+    public ErrorResponseDto() {
 
     }
 
