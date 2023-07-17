@@ -1,19 +1,18 @@
 package com.example.demo.model;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.Id;
-import jakarta.persistence.Lob;
+import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
 
 @Entity
+@Table(indexes = @Index(columnList = "shortLink"))
 public class Url {
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
-    @Lob
+    @Column(columnDefinition = "TEXT")
     private String originalUrl;
+    @Column(columnDefinition = "VARCHAR(10)")
     private String shortLink;
     private LocalDateTime creationDate;
     private LocalDateTime expirationDate;

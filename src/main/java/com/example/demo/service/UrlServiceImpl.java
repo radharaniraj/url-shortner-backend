@@ -20,29 +20,28 @@ import java.util.concurrent.CompletableFuture;
 
 @Component
 public class UrlServiceImpl implements UrlService{
-//    TODO: Add multi threading in all the services
     @Autowired
     private UrlRepository urlRepository;
 
     @Override
     @Async
-    public CompletableFuture<Url> createUrlWithRandomSlug(UrlDto urlDto) {
+    public Url createUrlWithRandomSlug(UrlDto urlDto) {
         String slug = generateRandomSlug();
         LocalDateTime creationDate = LocalDateTime.now();
         LocalDateTime expirationDate = getExpirationDate(urlDto.getExpirationDate(), creationDate);
 
         Url urlToPersist = new Url(urlDto.getUrl(), slug, creationDate, expirationDate);
-        return CompletableFuture.completedFuture(persistShortLink(urlToPersist));
+        return persistShortLink(urlToPersist);
     }
 
     @Async
     @Override
-    public CompletableFuture<Url> createURLWithCustomSlug(UrlDto urlDto){
+    public Url createURLWithCustomSlug(UrlDto urlDto){
         LocalDateTime creationDate = LocalDateTime.now();
         LocalDateTime expirationDate = getExpirationDate(urlDto.getExpirationDate(), creationDate);
 
         Url urlToPersist = new Url(urlDto.getUrl(), urlDto.getCustomSlug(), creationDate, expirationDate);
-        return CompletableFuture.completedFuture(persistShortLink(urlToPersist));
+        return persistShortLink(urlToPersist);
     }
 
     private LocalDateTime getExpirationDate(String expirationDate, LocalDateTime creationDate) {
@@ -68,7 +67,7 @@ public class UrlServiceImpl implements UrlService{
         boolean isUnique = false;
         while (!isUnique) {
             generatedString = generateRandomString(characters, 6);
-            if (!urlRepository.existsByShortLink(generatedString)) {
+            if (!isCustomSlugExists(generatedString)) {
                 isUnique = true;
             }
         }

@@ -5,6 +5,7 @@ import com.example.demo.model.Url;
 import com.example.demo.service.UrlService;
 import io.micrometer.common.util.StringUtils;
 import jakarta.servlet.http.HttpServletResponse;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -15,8 +16,7 @@ import com.example.demo.exceptions.UrlProcessingException;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
-import java.util.concurrent.CompletableFuture;
-
+import org.slf4j.Logger;
 import jakarta.validation.Valid;
 
 
@@ -24,35 +24,38 @@ import jakarta.validation.Valid;
 public class UrlShorteningcontroller {
     @Autowired
     private UrlService urlService;
-
+    Logger logger = LoggerFactory.getLogger(getClass());
     @PostMapping("/generate")
     @Async
-    public CompletableFuture<ResponseEntity<?>> generateShortLink(@Valid @RequestBody UrlDto urlDto)
+    public ResponseEntity<?> generateShortLink(@Valid @RequestBody UrlDto urlDto)
     {
+        logger.info("Request Body: inside controller");
+        logger.info(urlDto.toString());
             if (urlService.isCustomSlugExists(urlDto.getCustomSlug())) {
                 throw new CustomSlugExistsException("Custom slug already exists");
             }
 
-            CompletableFuture<Url> urlToRet;
+            Url urlToRet;
+
             if (urlDto.getCustomSlug() == null) {
                 urlToRet = urlService.createUrlWithRandomSlug(urlDto);
             } else {
                 urlToRet = urlService.createURLWithCustomSlug(urlDto);
             }
             if (urlToRet != null) {
-                Url url = urlToRet.join();
                 UrlResponseDto urlResponseDto = new UrlResponseDto();
-                urlResponseDto.setOriginalUrl(url.getOriginalUrl());
-                urlResponseDto.setExpirationDate(url.getExpirationDate());
-                urlResponseDto.setShortLink(url.getShortLink());
-                return CompletableFuture.completedFuture(ResponseEntity.ok(urlResponseDto));
+                urlResponseDto.setOriginalUrl(urlToRet.getOriginalUrl());
+                urlResponseDto.setExpirationDate(urlToRet.getExpirationDate());
+                urlResponseDto.setShortLink(urlToRet.getShortLink());
+                return ResponseEntity.ok(urlResponseDto);
             } else {
                 throw new UrlProcessingException("There was an error processing your request. Please try again.");
             }
     }
 
     @PostMapping("/validateSlug")
-    public ResponseEntity<ValidateCustomSlugResponseDto> validateCustomSlug(@Valid @RequestBody ValidateCustomSlugRequestDto requestDto) {
+    @Async
+    public ResponseEntity<ValidateCustomSlugResponseDto>validateCustomSlug(@Valid @RequestBody ValidateCustomSlugRequestDto requestDto) {
         String customSlug = requestDto.getCustomSlug();
 
         if (urlService.isCustomSlugExists(customSlug)) {
@@ -65,27 +68,27 @@ public class UrlShorteningcontroller {
 
     @Async
     @GetMapping("/{shortLink}")
-    public CompletableFuture<ResponseEntity<?>> redirectToOriginalUrl(@PathVariable String shortLink, HttpServletResponse response) throws IOException {
+    public ResponseEntity<?> redirectToOriginalUrl(@PathVariable String shortLink, HttpServletResponse response) throws IOException {
         if (StringUtils.isEmpty(shortLink)) {
-            return CompletableFuture.completedFuture(ResponseEntity.badRequest()
-                    .body(new ErrorResponseDto("400","Invalid URL")));
+            return ResponseEntity.badRequest()
+                    .body(new ErrorResponseDto("400","Invalid URL"));
         }
 
         Url urlToRet = urlService.getEncodedUrl(shortLink);
 
         if (urlToRet == null) {
-            return CompletableFuture.completedFuture(ResponseEntity.badRequest()
-                    .body(new ErrorResponseDto("400","URL does not exist or it might have expired!")));
+            return ResponseEntity.badRequest()
+                    .body(new ErrorResponseDto("400","URL does not exist or it might have expired!"));
 
         }
 
         if (urlToRet.getExpirationDate().isBefore(LocalDateTime.now())) {
             urlService.deleteShortLink(urlToRet);
-            return CompletableFuture.completedFuture(ResponseEntity.ok()
-                    .body(new ErrorResponseDto("200", "URL expired. Please try generating a fresh one.")));
+            return ResponseEntity.ok()
+                    .body(new ErrorResponseDto("200", "URL expired. Please try generating a fresh one."));
         }
 
         response.sendRedirect(urlToRet.getOriginalUrl());
-        return CompletableFuture.completedFuture(null);
+        return null;
     }
 }

@@ -7,6 +7,7 @@ import jakarta.validation.constraints.*;
 public class UrlResponseDto {
     private String originalUrl;
     private String shortLink;
+    private LocalDateTime expirationDate;
 
     public UrlResponseDto() {
 
@@ -20,7 +21,7 @@ public class UrlResponseDto {
         this.originalUrl = originalUrl;
     }
 
-    private LocalDateTime expirationDate;
+
 
     public UrlResponseDto(String originalurl, String shortLink, LocalDateTime expirationDate) {
         this.originalUrl = originalurl;

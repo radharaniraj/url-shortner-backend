@@ -1,5 +1,6 @@
 package com.example.demo.exceptions;
 
+import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -9,6 +10,7 @@ import com.example.demo.dto.ErrorResponseDto;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
 
     @ExceptionHandler(CustomSlugExistsException.class)
     public ResponseEntity<ErrorResponseDto> handleCustomSlugExistsException(CustomSlugExistsException ex) {
@@ -30,7 +32,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponseDto> handleException(Exception ex) {
         ErrorResponseDto errorResponseDto = new ErrorResponseDto();
         errorResponseDto.setStatus("500");
-        errorResponseDto.setError("An unexpected error occurred.");
+        errorResponseDto.setError("An unexpected error occurred."+ ex.toString() + ex.getMessage());
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponseDto);
     }
 
