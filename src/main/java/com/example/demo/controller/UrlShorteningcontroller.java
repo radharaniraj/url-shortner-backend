@@ -22,9 +22,15 @@ import jakarta.validation.Valid;
 
 @RestController
 public class UrlShorteningcontroller {
-    @Autowired
-    private UrlService urlService;
+
+    final private UrlService urlService;
     Logger logger = LoggerFactory.getLogger(getClass());
+
+    @Autowired
+    public UrlShorteningcontroller(UrlService urlService) {
+        this.urlService = urlService;
+    }
+
     @PostMapping("/generate")
     @Async
     public ResponseEntity<?> generateShortLink(@Valid @RequestBody UrlDto urlDto)

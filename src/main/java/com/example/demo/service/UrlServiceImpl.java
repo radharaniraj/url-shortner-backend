@@ -16,12 +16,15 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Random;
-import java.util.concurrent.CompletableFuture;
 
 @Component
 public class UrlServiceImpl implements UrlService{
+
+    final private UrlRepository urlRepository;
     @Autowired
-    private UrlRepository urlRepository;
+    public UrlServiceImpl(UrlRepository urlRepository) {
+        this.urlRepository = urlRepository;
+    }
 
     @Override
     @Async
