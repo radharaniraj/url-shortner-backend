@@ -16,7 +16,8 @@ jobs:
       - name: Set up JDK
         uses: actions/setup-java@v2
         with:
-          distribution: 'adopt@1.11'  # Set the desired distribution and JDK version
+          distribution: 'adopt@1.17'  # Set the desired distribution and JDK version
+          java-version: '17.0.4.1'   # Specify the exact Java version (required)
 
       - name: Grant execute permission to Gradle wrapper (if needed)
         run: chmod +x ./gradlew
@@ -32,3 +33,13 @@ jobs:
         with:
           name: test-results
           path: build/test-results
+
+      - name: Publish test coverage (optional, if you have code coverage setup)
+        run: ./gradlew jacocoTestReport
+        if: always()  # This ensures the step runs even if previous steps fail
+
+      - name: Upload test coverage report (optional, if you have code coverage setup)
+        uses: actions/upload-artifact@v2
+        with:
+          name: coverage-report
+          path: build/reports/jacoco/test/html
