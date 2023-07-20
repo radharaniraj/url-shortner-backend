@@ -34,13 +34,13 @@ jobs:
         run: mvn --batch-mode -DskipTests package
 
       - name: Test
-        run: mvn --batch-mode -Dmaven.test.failure.ignore=true test
+        run: mvn --batch-mode test
 
-      - name: Report
-        uses: dorny/test-reporter@v1
+      # Update the Report step
+      - name: Test Report
         if: always()
-        with:
-          name: Maven Tests
-          path: target/surefire-reports/*.xml
-          reporter: java-junit
-          fail-on-error: true
+        run: |
+          # Print the test results
+          find . -type f -name "TEST-*.xml" -exec cat {} \;
+
+  # Add other jobs or steps as needed for your workflow
