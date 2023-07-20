@@ -16,8 +16,8 @@ jobs:
       - name: Set up JDK
         uses: actions/setup-java@v2
         with:
-          java-version: '17.0.4.1'
-          distribution: 'jdk'  # Assuming it's Oracle HotSpot distribution
+          java-version: '17.0.4'
+          distribution: 'adopt'
 
       - name: Grant execute permission to Gradle wrapper (if needed)
         run: chmod +x ./gradlew
