@@ -16,7 +16,7 @@ jobs:
       - name: Set up JDK
         uses: actions/setup-java@v2
         with:
-          java-version: '11'  # Set the Java version you need for your project
+          distribution: 'adopt@1.11'  # Set the desired distribution and JDK version
 
       - name: Grant execute permission to Gradle wrapper (if needed)
         run: chmod +x ./gradlew
