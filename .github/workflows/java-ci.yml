@@ -19,17 +19,17 @@ jobs:
           java-version: '17.0.4'
           distribution: 'adopt'
 
-      - name: Grant execute permission to Gradle wrapper (if needed)
-        run: chmod +x ./gradlew
+      - name: Build
+        run: mvn --batch-mode -DskipTests package
 
-      - name: Build with Gradle
-        run: ./gradlew build
+      - name: Test
+        run: mvn --batch-mode -Dmaven.test.failure.ignore=true test
 
-      - name: Run tests with Gradle
-        run: ./gradlew test
-
-      - name: Upload test results
-        uses: actions/upload-artifact@v2
+      - name: Report
+        uses: dorny/test-reporter@v1
+        if: always()
         with:
-          name: test-results
-          path: build/test-results
+          name: Maven Tests
+          path: target/surefire-reports/*.xml
+          reporter: java-junit
+          fail-on-error: true
