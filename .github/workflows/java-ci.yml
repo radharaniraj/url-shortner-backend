@@ -32,13 +32,3 @@ jobs:
         with:
           name: test-results
           path: build/test-results
-
-      - name: Publish test coverage (optional, if you have code coverage setup)
-        run: ./gradlew jacocoTestReport
-        if: always()  # This ensures the step runs even if previous steps fail
-
-      - name: Upload test coverage report (optional, if you have code coverage setup)
-        uses: actions/upload-artifact@v2
-        with:
-          name: coverage-report
-          path: build/reports/jacoco/test/html
