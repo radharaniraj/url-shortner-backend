@@ -4,7 +4,11 @@ import com.example.demo.model.Url;
 import com.example.demo.dto.UrlDto;
 import com.example.demo.repository.UrlRepository;
 import com.google.common.hash.Hashing;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
@@ -19,6 +23,7 @@ import java.util.Random;
 
 @Component
 public class UrlServiceImpl implements UrlService{
+    Logger logger = LoggerFactory.getLogger(getClass());
 
     final private UrlRepository urlRepository;
     @Autowired
@@ -27,23 +32,26 @@ public class UrlServiceImpl implements UrlService{
     }
 
     @Override
-    @Async
+    public Url createURLWithCustomSlug(UrlDto urlDto){
+        LocalDateTime creationDate = LocalDateTime.now();
+        LocalDateTime expirationDate = getExpirationDate(urlDto.getExpirationDate(), creationDate);
+        logger.info(urlDto.toString());
+        Url urlToPersist = new Url(urlDto.getUrl(), urlDto.getCustomSlug(), creationDate, expirationDate);
+        logger.info(urlToPersist.toString());
+        Url abc = persistShortLink(urlToPersist);
+        logger.info(abc.toString());
+        return abc;
+    }
+
+
+
+    @Override
     public Url createUrlWithRandomSlug(UrlDto urlDto) {
         String slug = generateRandomSlug();
         LocalDateTime creationDate = LocalDateTime.now();
         LocalDateTime expirationDate = getExpirationDate(urlDto.getExpirationDate(), creationDate);
 
         Url urlToPersist = new Url(urlDto.getUrl(), slug, creationDate, expirationDate);
-        return persistShortLink(urlToPersist);
-    }
-
-    @Async
-    @Override
-    public Url createURLWithCustomSlug(UrlDto urlDto){
-        LocalDateTime creationDate = LocalDateTime.now();
-        LocalDateTime expirationDate = getExpirationDate(urlDto.getExpirationDate(), creationDate);
-
-        Url urlToPersist = new Url(urlDto.getUrl(), urlDto.getCustomSlug(), creationDate, expirationDate);
         return persistShortLink(urlToPersist);
     }
 
@@ -54,13 +62,6 @@ public class UrlServiceImpl implements UrlService{
         LocalDate expirationDateObj = LocalDate.parse(expirationDate, DateTimeFormatter.ISO_DATE);
         LocalDateTime expirationDateTime = expirationDateObj.atStartOfDay();
         return expirationDateTime;
-    }
-
-    private String encodeUrl(String url) {
-        String encodedUrl="";
-        LocalDateTime time=LocalDateTime.now();
-        encodedUrl= Hashing.murmur3_32_fixed().hashString(url.concat(time.toString()), StandardCharsets.UTF_8).toString();
-        return encodedUrl;
     }
 
     private String generateRandomSlug() {
@@ -93,17 +94,22 @@ public class UrlServiceImpl implements UrlService{
 
     @Override
     public Url persistShortLink(Url url) {
+        logger.info(url.toString(), "inside persist");
         Url urlToRet=urlRepository.save(url);
         return urlToRet;
     }
 
     @Override
+    @Cacheable(key="#url", cacheManager="cacheManager", value="myCache")
     public Url getEncodedUrl(String url) {
        Url urlToRet=urlRepository.findByShortLink(url);
+       logger.info("getting original url"+urlToRet.getOriginalUrl());
+
        return urlToRet;
     }
 
     @Override
+    @CacheEvict(value = "myCache", key = "#url")
     public void deleteShortLink(Url url) {
         urlRepository.delete(url);
     }

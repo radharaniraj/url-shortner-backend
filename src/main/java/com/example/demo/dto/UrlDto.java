@@ -19,6 +19,9 @@ public class UrlDto {
         this.expirationDate = expirationDate;
     }
 
+    public UrlDto() {
+    }
+
     public String getUrl() {
         return url;
     }

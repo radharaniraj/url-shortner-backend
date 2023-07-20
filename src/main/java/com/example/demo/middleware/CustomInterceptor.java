@@ -15,7 +15,7 @@ import java.util.concurrent.ConcurrentHashMap;
 @Component
 public class CustomInterceptor implements HandlerInterceptor {
 
-    private static final int MAX_REQUESTS_PER_MINUTE = 4;
+    private static final int MAX_REQUESTS_PER_MINUTE = 40;
     private static final Map<String, Long> requestCounts = new ConcurrentHashMap<>();
 
     @Override
@@ -66,6 +66,5 @@ public class CustomInterceptor implements HandlerInterceptor {
         }
         return clientIP;
     }
-
 }
 

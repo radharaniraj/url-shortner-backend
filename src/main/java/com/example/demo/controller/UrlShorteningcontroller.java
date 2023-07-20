@@ -9,7 +9,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.web.bind.annotation.*;
 import com.example.demo.exceptions.CustomSlugExistsException;
 import com.example.demo.exceptions.UrlProcessingException;
@@ -32,20 +31,20 @@ public class UrlShorteningcontroller {
     }
 
     @PostMapping("/generate")
-    @Async
     public ResponseEntity<?> generateShortLink(@Valid @RequestBody UrlDto urlDto)
     {
         logger.info("Request Body: inside controller");
+
         logger.info(urlDto.toString());
-            if (urlService.isCustomSlugExists(urlDto.getCustomSlug())) {
-                throw new CustomSlugExistsException("Custom slug already exists");
-            }
 
             Url urlToRet;
 
             if (urlDto.getCustomSlug() == null) {
                 urlToRet = urlService.createUrlWithRandomSlug(urlDto);
             } else {
+                if (urlService.isCustomSlugExists(urlDto.getCustomSlug())) {
+                    throw new CustomSlugExistsException("Custom slug already exists");
+                }
                 urlToRet = urlService.createURLWithCustomSlug(urlDto);
             }
             if (urlToRet != null) {
@@ -60,7 +59,6 @@ public class UrlShorteningcontroller {
     }
 
     @PostMapping("/validateSlug")
-    @Async
     public ResponseEntity<ValidateCustomSlugResponseDto>validateCustomSlug(@Valid @RequestBody ValidateCustomSlugRequestDto requestDto) {
         String customSlug = requestDto.getCustomSlug();
 
@@ -72,7 +70,6 @@ public class UrlShorteningcontroller {
     }
 
 
-    @Async
     @GetMapping("/{shortLink}")
     public ResponseEntity<?> redirectToOriginalUrl(@PathVariable String shortLink, HttpServletResponse response) throws IOException {
         if (StringUtils.isEmpty(shortLink)) {

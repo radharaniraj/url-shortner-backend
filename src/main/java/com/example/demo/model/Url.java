@@ -1,6 +1,7 @@
 package com.example.demo.model;
 
 import jakarta.persistence.*;
+import org.springframework.data.redis.core.RedisHash;
 
 import java.time.LocalDateTime;
 

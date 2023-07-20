@@ -9,6 +9,13 @@ public class ValidateCustomSlugRequestDto {
             " 3 to 8 characters")
     private String customSlug;
 
+    public ValidateCustomSlugRequestDto(String customSlug) {
+        this.customSlug = customSlug;
+    }
+
+    public ValidateCustomSlugRequestDto() {
+    }
+
     public String getCustomSlug() {
         return customSlug;
     }

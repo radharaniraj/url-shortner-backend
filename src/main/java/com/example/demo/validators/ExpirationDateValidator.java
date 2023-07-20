@@ -18,8 +18,12 @@ public class ExpirationDateValidator implements ConstraintValidator<ValidExpirat
         }
 
         LocalDate currentDate = LocalDate.now();
-        LocalDate parsedExpirationDate = LocalDate.parse(expirationDate);
-
-        return parsedExpirationDate.isAfter(currentDate);
+        try {
+            LocalDate parsedExpirationDate = LocalDate.parse(expirationDate);
+            return parsedExpirationDate.isAfter(currentDate);
+        }
+        catch (Exception e) {
+            return false;
+        }
     }
 }
