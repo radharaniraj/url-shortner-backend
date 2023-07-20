@@ -35,12 +35,3 @@ jobs:
 
       - name: Test
         run: mvn --batch-mode test
-
-      # Update the Report step
-      - name: Test Report
-        if: always()
-        run: |
-          # Print the test results
-          find . -type f -name "TEST-*.xml" -exec cat {} \;
-
-  # Add other jobs or steps as needed for your workflow
