@@ -8,6 +8,8 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import com.example.demo.dto.ErrorResponseDto;
 
+import java.time.format.DateTimeParseException;
+
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
@@ -43,5 +45,10 @@ public class GlobalExceptionHandler {
         errorResponseDto.setStatus("400");
         errorResponseDto.setError(errorMessage);
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponseDto);
+    }
+
+    @ExceptionHandler(DateTimeParseException.class)
+    public ResponseEntity<String> handleDateTimeParseException(DateTimeParseException ex) {
+        return ResponseEntity.badRequest().body("Invalid expiration date format. Please use the format: yyyy-MM-dd");
     }
 }

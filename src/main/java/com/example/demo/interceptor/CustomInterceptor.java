@@ -1,4 +1,4 @@
-package com.example.demo.middleware;
+package com.example.demo.interceptor;
 
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -22,9 +22,6 @@ public class CustomInterceptor implements HandlerInterceptor {
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
 
         String clientIP = getClientIP(request);
-        Logger logger = LoggerFactory.getLogger(getClass());
-        logger.info("Incoming request - URL: {}, Method: {}, Headers: {}", request.getRequestURI(), request.getMethod(), request.getHeaderNames());
-
         // Check if the client IP is already present in the requestCounts map
         if (requestCounts.containsKey(clientIP)) {
             long requestCount = requestCounts.get(clientIP);
@@ -48,22 +45,7 @@ public class CustomInterceptor implements HandlerInterceptor {
     }
 
     private String getClientIP(HttpServletRequest request) {
-        String clientIP = request.getHeader("X-Forwarded-For");
-        if (clientIP == null || clientIP.isEmpty() || "unknown".equalsIgnoreCase(clientIP)) {
-            clientIP = request.getHeader("Proxy-Client-IP");
-        }
-        if (clientIP == null || clientIP.isEmpty() || "unknown".equalsIgnoreCase(clientIP)) {
-            clientIP = request.getHeader("WL-Proxy-Client-IP");
-        }
-        if (clientIP == null || clientIP.isEmpty() || "unknown".equalsIgnoreCase(clientIP)) {
-            clientIP = request.getHeader("HTTP_CLIENT_IP");
-        }
-        if (clientIP == null || clientIP.isEmpty() || "unknown".equalsIgnoreCase(clientIP)) {
-            clientIP = request.getHeader("HTTP_X_FORWARDED_FOR");
-        }
-        if (clientIP == null || clientIP.isEmpty() || "unknown".equalsIgnoreCase(clientIP)) {
-            clientIP = request.getRemoteAddr();
-        }
+        String clientIP = request.getRemoteAddr();
         return clientIP;
     }
 }
