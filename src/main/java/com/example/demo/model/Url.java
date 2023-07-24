@@ -13,7 +13,7 @@ public class Url {
     private long id;
     @Column(columnDefinition = "TEXT")
     private String originalUrl;
-    @Column(columnDefinition = "VARCHAR(10)")
+    @Column(columnDefinition = "VARCHAR(10)",unique = true)
     private String shortLink;
     private LocalDateTime creationDate;
     private LocalDateTime expirationDate;

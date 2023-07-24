@@ -8,7 +8,6 @@ import com.example.demo.model.Url;
 import com.example.demo.service.UrlService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.validation.ValidationException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
@@ -26,7 +25,6 @@ import java.time.LocalDateTime;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 class UrlShorteningcontrollerTest {
@@ -86,7 +84,7 @@ class UrlShorteningcontrollerTest {
 
         mockMvc.perform(post("/generate/shortlink")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(asJsonString(urlDto))) // Helper method to convert object to JSON string
+                        .content(asJsonString(urlDto)))
                 .andExpect(status().isConflict());
 
     }
@@ -149,17 +147,6 @@ class UrlShorteningcontrollerTest {
 
 
     @Test
-    public void testRedirectToOriginalUrl_InvalidShortLink_BadRequestReturned() throws IOException {
-        String invalidShortLink = null;
-        ResponseEntity<?> response = urlShorteningController.redirectToOriginalUrl(invalidShortLink, httpServletResponse);
-        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-        assertTrue(response.getBody() instanceof ErrorResponseDto);
-        ErrorResponseDto errorResponseDto = (ErrorResponseDto) response.getBody();
-        assertEquals("400", errorResponseDto.getStatus());
-        assertEquals("Invalid URL", errorResponseDto.getError());
-    }
-
-    @Test
     public void testRedirectToOriginalUrl_NonExistingShortLink_BadRequestReturned() throws IOException {
         String nonExistingShortLink = "nonExistingShortLink";
         when(urlService.getEncodedUrl(nonExistingShortLink)).thenReturn(null);
@@ -197,7 +184,7 @@ class UrlShorteningcontrollerTest {
         validUrl.setOriginalUrl("https://www.example.com");
         validUrl.setExpirationDate(LocalDateTime.now().plusDays(1));
         when(urlService.getEncodedUrl(validShortLink)).thenReturn(validUrl);
-        ResponseEntity<?> response =  urlShorteningController.redirectToOriginalUrl(validShortLink, httpServletResponse);
+        ResponseEntity<?> response = urlShorteningController.redirectToOriginalUrl(validShortLink, httpServletResponse);
         assertNull(response);
         verify(urlService, times(1)).getEncodedUrl(validShortLink);
         verify(httpServletResponse, times(1)).sendRedirect(validUrl.getOriginalUrl());

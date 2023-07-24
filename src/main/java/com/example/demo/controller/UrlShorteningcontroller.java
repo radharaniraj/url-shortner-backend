@@ -73,10 +73,7 @@ public class UrlShorteningcontroller {
 
     @GetMapping("/{shortLink}")
     public ResponseEntity<?> redirectToOriginalUrl(@PathVariable String shortLink, HttpServletResponse response) throws IOException {
-        if (StringUtils.isEmpty(shortLink)) {
-            return ResponseEntity.badRequest()
-                    .body(new ErrorResponseDto("400", "Invalid URL"));
-        }
+
 
         Url urlToRet = urlService.getEncodedUrl(shortLink);
 
@@ -98,7 +95,6 @@ public class UrlShorteningcontroller {
     }
     @DeleteMapping("/{shortLink}")
     public ResponseEntity<?> deleteShortUrl(@PathVariable String shortLink,HttpServletResponse response)throws IOException {
-        // Check if the short URL exists
         Url urlToDelete = urlService.getUrlByShortLink(shortLink);
         if (urlToDelete == null) {
             ErrorResponseDto errorResponse = new ErrorResponseDto("404","URL does not exist or it might have expired!");
@@ -112,7 +108,7 @@ public class UrlShorteningcontroller {
 
     @PutMapping("/url/{shortCode}/expirationDate")
     public ResponseEntity<?> setExpirationDate(@PathVariable String shortCode,
-                                               @RequestBody UrlExpireDto urlExpireDto) {
+                                              @Valid @RequestBody UrlExpireDto urlExpireDto) {
         LocalDate expirationDateObj = LocalDate.parse(urlExpireDto.getExpirationDate(), DateTimeFormatter.ISO_DATE);
         LocalDateTime parsedExpirationDate = expirationDateObj.atStartOfDay();
         if (!urlService.isCustomSlugExists(shortCode)){

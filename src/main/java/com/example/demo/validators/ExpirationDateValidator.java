@@ -14,7 +14,7 @@ public class ExpirationDateValidator implements ConstraintValidator<ValidExpirat
     @Override
     public boolean isValid(String expirationDate, ConstraintValidatorContext context) {
         if (expirationDate == null) {
-            return true; // Null values are handled by @NotEmpty annotation
+            return true;
         }
 
         LocalDate currentDate = LocalDate.now();
